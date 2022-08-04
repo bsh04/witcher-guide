@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  late bool _passwordVisible = false;
 
   _handleLogin() async {
     RequestParams params = RequestParams();
@@ -54,10 +55,21 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: TextField(
+                  obscureText: !_passwordVisible,
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter password',
-                  ),
+                  decoration: InputDecoration(
+                      hintText: 'Enter password',
+                      suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _passwordVisible = !_passwordVisible;
+                            });
+                          },
+                          icon: Icon(
+                            _passwordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ))),
                 ),
               ),
               Padding(

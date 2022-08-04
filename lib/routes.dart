@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:witcher_guide/screens/MainScreen.dart';
+import 'package:witcher_guide/screens/MainScreen/MainScreen.dart';
 import 'package:witcher_guide/screens/LoginScreen.dart';
 import 'package:witcher_guide/screens/RegistrationScreen.dart';
 import 'package:witcher_guide/screens/CharacterEditScreen.dart';

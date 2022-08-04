@@ -22,6 +22,7 @@ class Response<T> {
 
 Future<Response> request(RequestParams params) async {
   var response = await httpManager(params);
+  print(response?.statusCode);
 
   if (response?.statusCode == 200) {
     var jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
@@ -29,6 +30,10 @@ Future<Response> request(RequestParams params) async {
     res.status = 200;
     res.data = jsonResponse;
     return res;
+  }
+
+  if (response?.statusCode == 401) {
+    await deleteStorageKey(tokenKey);
   }
 
   return Response();

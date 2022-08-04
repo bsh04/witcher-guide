@@ -2,6 +2,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
+const String tokenKey = "token";
+
 getStorageKey(String key) async {
   return await secureStorage.read(key: key);
 }
@@ -15,7 +17,7 @@ setStorageKey(String key, String value) async {
 }
 
 getBaseHeaders() async {
-  final String? token = await getStorageKey("token");
+  final String? token = await getStorageKey(tokenKey);
   late Map<String, String> headers = <String, String>{
     'Content-Type': 'application/json; charset=UTF-8',
   };

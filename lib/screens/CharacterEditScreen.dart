@@ -7,8 +7,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:witcher_guide/API/URLs.dart';
 import 'package:witcher_guide/API/httpManager.dart';
+import 'package:witcher_guide/components/EntityTypeSelect.dart';
 import 'package:witcher_guide/components/PreviewImage.dart';
-import 'package:witcher_guide/types/index.dart';
+import 'package:witcher_guide/enums/index.dart';
+import 'package:witcher_guide/models/ImageModel.dart';
 
 class CharacterParagraph {
   late TextEditingController? title = null;
@@ -18,6 +20,10 @@ class CharacterParagraph {
 
   void onAddTitle() {
     this.title = TextEditingController();
+  }
+
+  void onRemoveTitle() {
+    this.title = null;
   }
 
   void onAddContent() {
@@ -35,15 +41,15 @@ class CharacterEditScreen extends StatefulWidget {
 class _CharacterEditScreenState extends State<CharacterEditScreen> {
   final TextEditingController _characterNameController =
       TextEditingController();
-  final List<CharacterParagraph> _paragraphControllers = [];
-  final PageController _pageController = PageController();
-  late List<ImageI> images = [];
+  final List<CharacterParagraph> _paragraphsList = [];
+  late List<ImageModel> images = [];
   late int _paragraphsCount = 0;
+  late EntityType _entityType = EntityType.CHARACTER;
+  late String _nameFieldError = "";
 
   void _handleAddParagraph() {
     setState(() {
-      _paragraphControllers
-          .add(CharacterParagraph(content: TextEditingController()));
+      _paragraphsList.add(CharacterParagraph(content: TextEditingController()));
       _paragraphsCount += 1;
     });
   }
@@ -64,7 +70,7 @@ class _CharacterEditScreenState extends State<CharacterEditScreen> {
       var res = await request.send();
       res.stream.transform(utf8.decoder).listen((value) {
         setState(() {
-          images.add(ImageI.fromJson(jsonDecode(value)));
+          images.add(ImageModel.fromJson(jsonDecode(value)));
         });
       });
     }
@@ -75,15 +81,22 @@ class _CharacterEditScreenState extends State<CharacterEditScreen> {
   }
 
   void _handleSaveCharacter() async {
+    if (_characterNameController.value.text.isEmpty) {
+      setState(() {
+        _nameFieldError = "Name is required";
+      });
+      return;
+    }
     RequestParams params = RequestParams();
-    params.url = getUrl(characterAddUrl);
+    params.url = getUrl(entityAddUrl);
     params.body = {
       "name": _characterNameController.value.text,
-      "description": _paragraphControllers
+      "description": _paragraphsList
           .map((e) =>
               ({"title": e.title?.value.text, "content": e.content.value.text}))
           .toList(),
-      "images": images.map((e) => e.toJson()).toList()
+      "images": images.map((e) => e.toJson()).toList(),
+      "type": _entityType.name
     };
     Response response = await request(params);
     if (response.status == 200) {
@@ -103,95 +116,145 @@ class _CharacterEditScreenState extends State<CharacterEditScreen> {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(title: const Text("Add character")),
-      body: SizedBox(
-        height: double.maxFinite,
-        child: PageView(controller: _pageController, children: [
-          Column(
-            children: [
-              images.isNotEmpty
-                  ? Container(
-                      margin: const EdgeInsets.only(top: 20),
-                      height: 150,
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: images.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                    index == 0 ? 10 : 0, 0, 10, 0),
-                                child: PreviewImage(
-                                  handleRemove: _handleRemoveImage,
-                                  image: images[index],
-                                ));
-                          }),
+      body: Scrollbar(
+        child: ListView(
+          children: [
+            if (images.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: 20),
+                height: 150,
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: images.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                          padding: EdgeInsets.fromLTRB(
+                              index == 0 ? 10 : 0, 0, 10, 0),
+                          child: PreviewImage(
+                            handleRemove: _handleRemoveImage,
+                            image: images[index],
+                          ));
+                    }),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextButton(
+                  onPressed: _handleStartUploadImages,
+                  child: const Text("Upload image")),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              child: TextField(
+                controller: _characterNameController,
+                onChanged: (_) {
+                  if (_nameFieldError.isNotEmpty) {
+                    setState(() {
+                      _nameFieldError = "";
+                    });
+                  }
+                },
+                decoration: InputDecoration(
+                    hintText: "Name",
+                    errorText:
+                        _nameFieldError.isNotEmpty ? _nameFieldError : null),
+              ),
+            ),
+            Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Select entity type",
+                      style: TextStyle(color: Colors.black38),
+                    ),
+                    EntityTypeSelect(
+                      entityType: _entityType,
+                      handleSelect: (EntityType value) {
+                        setState(() {
+                          _entityType = value;
+                        });
+                      },
                     )
-                  : const Text(""),
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: TextButton(
-                    onPressed: _handleStartUploadImages,
-                    child: const Text("Upload image")),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                child: TextField(
-                  controller: _characterNameController,
-                  decoration: const InputDecoration(
-                    hintText: "Character name",
-                  ),
-                ),
-              ),
-              ListView.builder(
+                  ],
+                )),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 20, 10, 0),
+              child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: _paragraphsCount,
                 itemBuilder: (context, index) {
-                  bool titleIsExist =
-                      _paragraphControllers[index].title != null;
-                  return Column(
-                    children: [
-                      titleIsExist
-                          ? Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  bool titleIsExist = _paragraphsList[index].title != null;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (titleIsExist)
+                          SizedBox(
+                            width: 200,
+                            child: TextField(
+                              controller: _paragraphsList[index].title,
+                              decoration: const InputDecoration(
+                                hintText: "Enter title...",
+                              ),
+                            ),
+                          ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width - 70,
                               child: TextField(
-                                controller: _paragraphControllers[index].title,
-                                decoration: const InputDecoration(
-                                  hintText: "Enter title...",
+                                controller: _paragraphsList[index].content,
+                                decoration: InputDecoration(
+                                  hintText: "Enter content...",
+                                  suffixIcon: !titleIsExist
+                                      ? IconButton(
+                                          onPressed: () {
+                                            _paragraphsList[index].onAddTitle();
+                                            _handleAddTitle();
+                                          },
+                                          icon: const Icon(Icons.add))
+                                      : IconButton(
+                                          onPressed: () {
+                                            _paragraphsList[index]
+                                                .onRemoveTitle();
+                                            _handleAddTitle();
+                                          },
+                                          icon: const Icon(Icons.remove)),
                                 ),
                               ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                // _paragraphsList.removeAt(index); // TODO
+                                // setState(() {
+                                //   _paragraphsList = _paragraphsList;
+                                // });
+                              },
                             )
-                          : const Center(),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                        child: TextField(
-                          controller: _paragraphControllers[index].content,
-                          decoration: InputDecoration(
-                            hintText: "Enter content...",
-                            suffixIcon: !titleIsExist
-                                ? IconButton(
-                                    onPressed: () {
-                                      _paragraphControllers[index].onAddTitle();
-                                      _handleAddTitle();
-                                    },
-                                    icon: const Icon(Icons.add))
-                                : null,
-                          ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),
-              TextButton(
-                  onPressed: _handleAddParagraph,
-                  child: const Text("Add paragraph")),
-              const Spacer(),
-              TextButton(
+            ),
+            TextButton(
+                onPressed: _handleAddParagraph,
+                child: const Text("Add paragraph")),
+            SizedBox(
+              height: 50,
+              width: double.maxFinite,
+              child: TextButton(
                   onPressed: _handleSaveCharacter,
                   child: const Text("Save character")),
-            ],
-          ),
-        ]),
+            ),
+          ],
+        ),
       ),
     );
   }

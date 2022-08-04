@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:witcher_guide/API/URLs.dart';
 import 'package:witcher_guide/components/PreviewImage.dart';
+import 'package:witcher_guide/models/PreviewEntityModel.dart';
 import 'package:witcher_guide/screens/CharacterViewScreen.dart';
-import 'package:witcher_guide/types/index.dart';
 
 class ArticleCard extends StatelessWidget {
   const ArticleCard({Key? key, required this.item}) : super(key: key);
 
-  final PreviewEntityI item;
+  final PreviewEntityModel item;
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +32,15 @@ class ArticleCard extends StatelessWidget {
                 isFixedHeight: true,
               )
             else
-              const SizedBox(
-                width: 100,
-                child: Image(
-                  fit: BoxFit.contain,
-                  image: NetworkImage(defaultImagesUrl),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: const SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: Image(
+                    fit: BoxFit.cover,
+                    image: NetworkImage(defaultImagesUrl),
+                  ),
                 ),
               ),
             SizedBox(child: Text(item.name)),
