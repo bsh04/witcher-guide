@@ -4,6 +4,9 @@ import 'package:witcher_guide/API/httpManager.dart';
 import 'package:witcher_guide/routes.dart';
 import 'package:witcher_guide/secureStorageManager.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -16,9 +19,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+
   void _handleAuth() async {
     String? token = await getStorageKey(tokenKey);
-    print(token);
 
     if (token == null) {
       return;
@@ -42,6 +45,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('ru', ''),
+      ],
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),

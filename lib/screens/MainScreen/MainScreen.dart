@@ -102,6 +102,15 @@ class _MainScreenState extends State<MainScreen> {
     _handleDataFetch();
   }
 
+  void _handlePersonClick() async {
+    var token = await getStorageKey(tokenKey);
+    if (token == null) {
+      Navigator.pushNamed(context, "/login");
+    } else {
+      Navigator.pushNamed(context, "/settings");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -123,10 +132,9 @@ class _MainScreenState extends State<MainScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: IconButton(
-                icon: const Icon(Icons.person, size: 30.0),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/login');
-                }),
+              icon: const Icon(Icons.person, size: 30.0),
+              onPressed: _handlePersonClick,
+            ),
           ),
         ]),
         body: Scrollbar(

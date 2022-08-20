@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:witcher_guide/API/URLs.dart';
 import 'package:witcher_guide/components/PreviewImage.dart';
 import 'package:witcher_guide/models/PreviewEntityModel.dart';
-import 'package:witcher_guide/screens/CharacterViewScreen.dart';
+import 'package:witcher_guide/screens/Character/CharacterViewScreen.dart';
 
 class ArticleCard extends StatelessWidget {
   const ArticleCard({Key? key, required this.item}) : super(key: key);
@@ -16,6 +16,7 @@ class ArticleCard extends StatelessWidget {
         Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => CharacterViewScreen(
                   id: item.id,
+                  type: item.type,
                 )));
       },
       child: Container(

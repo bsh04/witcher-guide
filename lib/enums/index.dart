@@ -16,3 +16,19 @@ extension EntityTypeExtension on EntityType {
     }
   }
 }
+
+enum Language {
+  RU,
+  US,
+}
+
+extension LanguageExtension on Language {
+  String get displayTitle {
+    switch (this) {
+      case Language.RU:
+        return "Русский";
+      case Language.US:
+        return "English";
+    }
+  }
+}

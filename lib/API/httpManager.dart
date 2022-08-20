@@ -22,7 +22,6 @@ class Response<T> {
 
 Future<Response> request(RequestParams params) async {
   var response = await httpManager(params);
-  print(response?.statusCode);
 
   if (response?.statusCode == 200) {
     var jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
